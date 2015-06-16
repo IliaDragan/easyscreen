@@ -86,9 +86,8 @@ class TingSearchController extends Controller
     $request->setQuery($query);
     $request->setAgency(TING_AGENCY_ID);
 
-    $request->setStart($offset);///$results_per_page * (($page > 0 ? $page : 1) - 1) + 1);
+    $request->setStart($offset);
     $request->setNumResults($results_per_page);
-    //var_dump($results_per_page * (($page > 0 ? $page : 1) - 1) + 1, $results_per_page);
 
     if (!isset($options['facets'])) {
       $options['facets'] = array();
@@ -364,5 +363,26 @@ class TingSearchController extends Controller
     $rel->addChild('title', htmlspecialchars($a->title));
     $rel->addChild('abstract', htmlspecialchars($a->abstract));
     $rel->addChild('description', htmlspecialchars($a->description));
+  }
+
+  public function getDepartments() {
+    $xml = new \SimpleXmlElement('<?xml version=\'1.0\'?><departments></departments>');
+
+    $facet = 'facet.department';
+    $options = array(
+      'facets' => array($facet),
+      'numFacets' => 9999,
+      'reply_only' => TRUE,
+      'sort' => 'random',
+    );
+    $this->doSearch('*', 0, 0, $options);
+
+    foreach ($this->searchResult->facets[$facet]->terms as $term => $count) {
+      $dep = $xml->addChild('department');
+      $dep->addChild('id', htmlspecialchars($term));
+      $dep->addChild('name', htmlspecialchars($term));
+    }
+
+    return $xml->asXML();
   }
 }

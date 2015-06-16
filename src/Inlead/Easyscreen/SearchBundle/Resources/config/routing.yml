@@ -9,3 +9,7 @@ search:
 single:
     path:     /single
     defaults: { _controller: InleadEasyscreenSearchBundle:Search:single }
+
+departments:
+    path:     /departments
+    defaults: { _controller: InleadEasyscreenSearchBundle:Search:departments }

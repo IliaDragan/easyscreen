@@ -59,7 +59,6 @@ class SearchController extends Controller
       $result = str_replace("'", "\'", $result);
 
       if (!empty($callback)) {
-        //$callback = empty($_REQUEST['callback']) ? 'jsonpCallback' : $_REQUEST['callback'];
         $callback = preg_replace('/[^\w]/', '', $callback);
         $result = $callback . "('" . $result . "');";
       }
@@ -71,6 +70,14 @@ class SearchController extends Controller
       return $response;
     }
 
+    public function departmentsAction() {
+      $ting = new TingSearchController();
+      $result = $ting->getDepartments();
+
+      $response = new Response($result);
+      $response->headers->set('Content-Type', 'text/html; charset=UTF-8');
+      return $response;
+    }
     private function checkForHardcoddedValues($callback, $query) {
       switch($query) {
         case '870970-basis:23753804':
