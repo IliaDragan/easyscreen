@@ -9,8 +9,8 @@ use Inlead\Easyscreen\SearchBundle\AddiClient\AdditionalInformationService as Ad
 
 define('ADDI_WSDL_URL', 'http://moreinfo.addi.dk/2.1/');
 define('ADDI_USERNAME', 'netpunkt');
-define('ADDI_PASSWORD', 'kvupoglo');
-define('ADDI_GROUP', '786000');
+define('ADDI_PASSWORD', 'Skolegade3');
+define('ADDI_GROUP', '766500');
 class CoverImageController extends Controller
 {
   public function getCoverImage($faustNumbers) {

@@ -69,7 +69,6 @@ class TingClientRequestAdapter {
         if (function_exists('variable_get')) {
           $curl_options = variable_get('curl_options');
         }
-
         $client = new NanoSOAPClient($request->getWsdlUrl(), array('curl' => $curl_options));
         $response = $client->call($soapAction, $soapParameters);
 

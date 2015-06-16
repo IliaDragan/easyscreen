@@ -296,7 +296,8 @@ class TingClientSearchRequest extends TingClientRequest {
       list($object->localId, $object->ownerId) = explode('|', $object->record['ac:identifier'][''][0]);
     }
     else {
-      list($object->ownerId, $object->localId) = explode(':', $object->id);
+      // ToDo find what why this string is buggy with 'peter' requets.
+     // list($object->ownerId, $object->localId) = explode(':', $object->id);
     }
 
     if (isset($objectData->relations)) {

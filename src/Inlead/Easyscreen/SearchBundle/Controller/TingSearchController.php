@@ -4,12 +4,12 @@ namespace Inlead\Easyscreen\SearchBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
-define('TING_SEARCH_URL','http://opensearch.addi.dk/3.0/');
+define('TING_SEARCH_URL','http://opensearch.addi.dk/4.0/');
 define('TING_SCAN_URL', 'http://openscan.addi.dk/1.7/');
 define('TING_SPELL_URL', 'http://openspell.addi.dk/1.2/');
 define('TING_RECOMMENDATION_URL', 'http://openadhl.addi.dk/1.1/');
-define('TING_AGENCY_ID', 786000);
-define('TING_SEARCH_PROFILE', 'estest');
+define('TING_AGENCY_ID', 766500);
+define('TING_SEARCH_PROFILE', 'opac');
 define('TING_INFOMEDIA_URL', 'http://useraccessinfomedia.addi.dk/1.1/');
 
 
@@ -77,7 +77,7 @@ class TingSearchController extends Controller
   );
 
 
-  public function doSearch($query, $page = 1, $results_per_page = 10, $options = array()) {
+  public function doSearch($query, $offset, $results_per_page = 10, $options = array()) {
     $request = $this->getRequestFactory()->getSearchRequest();
 
     if (!is_object($request)) {
@@ -86,8 +86,9 @@ class TingSearchController extends Controller
     $request->setQuery($query);
     $request->setAgency(TING_AGENCY_ID);
 
-    $request->setStart($results_per_page * (($page > 0 ? $page : 1) - 1) + 1);
+    $request->setStart($offset);///$results_per_page * (($page > 0 ? $page : 1) - 1) + 1);
     $request->setNumResults($results_per_page);
+    //var_dump($results_per_page * (($page > 0 ? $page : 1) - 1) + 1, $results_per_page);
 
     if (!isset($options['facets'])) {
       $options['facets'] = array();
@@ -175,18 +176,23 @@ class TingSearchController extends Controller
     // Loop through every collection and object in it
     if (is_object($this->searchResult)) {
       $faustNumbers = array();
-      foreach ($this->searchResult->collections as $k => $v) {
-        foreach ($v->objects as $kk => $vv) {
-          $faustNumbers[] = $vv->localId;
+      foreach ($this->searchResult->collections as $v) {
+        foreach ($v->objects as $vv) {
+          if (isset($vv->localId)) {
+            $faustNumbers[] = $vv->localId;
+          }
         }
       }
 
       $images = new CoverImageController();
       $images = $images->getCoverImage($faustNumbers);
 
-      foreach ($this->searchResult->collections as $k => $v) {
+      foreach ($this->searchResult->collections as $v) {
         $object = $v->objects[0];
         $item = $item_list->addChild("item");
+        if ($object->id === '') {
+          continue;
+        }
         $item->addAttribute("id", $object->id);
 
         // Data from search result.
@@ -197,6 +203,7 @@ class TingSearchController extends Controller
         $item->addChild("typeIcon");
         $item->addChild("year", isset($object->record['dc:date'][''][0]) ? $object->record['dc:date'][''][0] : '');
 
+        // ToDo provide small images also.
         if (isset($images[$object->localId])) {
           $item->addChild("img", $images[$object->localId]);
           $item->addChild("smallImg", $images[$object->localId]);
@@ -209,7 +216,7 @@ class TingSearchController extends Controller
     return $xml->asXML();
   }
 
-  
+
 
   private function getClient() {
     if (!isset($this->client)) {
@@ -314,10 +321,17 @@ class TingSearchController extends Controller
         if (isset($images[$object->localId])) {
           $item->addChild("img", htmlspecialchars($images[$object->localId]));
         }
+
+        $hardcoddedIds = array('24223795', '25855485', '23753804', '50650898', '26923530');
+        $faust = explode(':', $object->id);
         //fetch external resources.
+        $relations = $item->addChild('externalResources');
         if (isset($object->relations)) {
-          $relations = $item->addChild('externalResources');
           $this->fetchRelations($object->relations, $relations);
+        }
+
+        if (in_array($faust[1], $hardcoddedIds)) {
+          $this->addHardcoddedRelation($faust[1], $relations);
         }
       }
 
@@ -328,7 +342,6 @@ class TingSearchController extends Controller
 
   }
   private function fetchRelations($relations, &$xmlObj) {
-   // var_dump($relations);
     foreach($relations as $relation) {
       $rel = $xmlObj->addChild('resource');
       $rel->addAttribute('type', htmlspecialchars($relation->getRelationType()));
@@ -340,5 +353,16 @@ class TingSearchController extends Controller
       $rel->addChild('isPartOf', htmlspecialchars($relation->getPartOf()));
       $rel->addChild('description', htmlspecialchars($relation->getDescription()));
     }
+  }
+
+  private function addHardcoddedRelation($faust, &$xmlObj) {
+    $file = fopen($faust, "r");
+    $a = simplexml_load_string(fread($file, filesize($faust)));
+    fclose($file);
+    $rel = $xmlObj->addChild('resource');
+    $rel->addAttribute('type', 'literatursiden');
+    $rel->addChild('title', htmlspecialchars($a->title));
+    $rel->addChild('abstract', htmlspecialchars($a->abstract));
+    $rel->addChild('description', htmlspecialchars($a->description));
   }
 }
