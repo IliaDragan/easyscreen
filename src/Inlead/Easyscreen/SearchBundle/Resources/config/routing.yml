@@ -13,3 +13,7 @@ single:
 departments:
     path:     /departments
     defaults: { _controller: InleadEasyscreenSearchBundle:Search:departments }
+
+availability:
+    path:     /availability
+    defaults: { _controller: InleadEasyscreenSearchBundle:Provider:availability }

@@ -9,8 +9,8 @@ use Inlead\Easyscreen\SearchBundle\AddiClient\AdditionalInformationService as Ad
 
 define('ADDI_WSDL_URL', 'http://moreinfo.addi.dk/2.1/');
 define('ADDI_USERNAME', 'netpunkt');
-define('ADDI_PASSWORD', 'Skolegade3');
-define('ADDI_GROUP', '766500');
+define('ADDI_PASSWORD', 'byspaste');
+define('ADDI_GROUP', '733000');
 class CoverImageController extends Controller
 {
   public function getCoverImage($faustNumbers) {
@@ -28,7 +28,6 @@ class CoverImageController extends Controller
         unset($faust);
       }
     }
-
     // Fetch non-cached covers from Addi.
     $addi = new AdditionalInformationService(ADDI_WSDL_URL, ADDI_USERNAME, ADDI_GROUP, ADDI_PASSWORD);
     $response = $addi->getByFaustNumber($faustNumbers);

@@ -79,6 +79,7 @@ class TingSearchController extends Controller
 
   public function doSearch($query, $offset, $results_per_page = 10, $options = array()) {
     $request = $this->getRequestFactory()->getSearchRequest();
+    //var_dump($query);
 
     if (!is_object($request)) {
       return NULL;
@@ -290,8 +291,10 @@ class TingSearchController extends Controller
         $item->addChild("author", htmlspecialchars($author));
 
         $subj = array();
-        foreach ($object->record['dc:subject'] as $v) {
-          $subj = array_merge($subj, $v);
+        if (isset($object->record['dc:subject'])) {
+          foreach ($object->record['dc:subject'] as $v) {
+            $subj = array_merge($subj, $v);
+          }
         }
         if (!empty($subj)) {
           $subjects = $item->addChild('subjects');
@@ -366,7 +369,7 @@ class TingSearchController extends Controller
   }
 
   public function getDepartments() {
-    $xml = new \SimpleXmlElement('<?xml version=\'1.0\'?><departments></departments>');
+    $xml = new \SimpleXmlElement('<?xml version="1.0" encoding="UTF-8"?><departments></departments>');
 
     $facet = 'facet.department';
     $options = array(
@@ -379,8 +382,8 @@ class TingSearchController extends Controller
 
     foreach ($this->searchResult->facets[$facet]->terms as $term => $count) {
       $dep = $xml->addChild('department');
-      $dep->addChild('id', htmlspecialchars($term));
-      $dep->addChild('name', htmlspecialchars($term));
+      $dep->addChild('id', $term);
+      $dep->addChild('name', $term);
     }
 
     return $xml->asXML();

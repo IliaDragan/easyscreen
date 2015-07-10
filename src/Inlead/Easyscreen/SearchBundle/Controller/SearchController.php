@@ -78,6 +78,7 @@ class SearchController extends Controller
       $response->headers->set('Content-Type', 'text/html; charset=UTF-8');
       return $response;
     }
+
     private function checkForHardcoddedValues($callback, $query) {
       switch($query) {
         case '870970-basis:23753804':
