@@ -9,7 +9,7 @@ use Inlead\Easyscreen\SearchBundle;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
-
+use Inlead\Easyscreen\SearchBundle\Controller\TingSearchCqlDoctor;
 
 class SearchController extends Controller
 {
@@ -28,7 +28,8 @@ class SearchController extends Controller
 
       $result = "";
       if (!empty($query) && $request->query->get('action') == 'itemsList') {
-
+	$cqlDoctor = new TingSearchCqlDoctor($query);
+        $query = $cqlDoctor->string_to_cql($query);
         // Prep the query for ting
         $query = '(' . $query . ')';
 

@@ -4,11 +4,11 @@ namespace Inlead\Easyscreen\SearchBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
-define('TING_SEARCH_URL','http://opensearch.addi.dk/4.0/');
+define('TING_SEARCH_URL','http://opensearch.addi.dk/4.0.1/');
 define('TING_SCAN_URL', 'http://openscan.addi.dk/1.7/');
 define('TING_SPELL_URL', 'http://openspell.addi.dk/1.2/');
 define('TING_RECOMMENDATION_URL', 'http://openadhl.addi.dk/1.1/');
-define('TING_AGENCY_ID', 766500);
+define('TING_AGENCY_ID', 733000);
 define('TING_SEARCH_PROFILE', 'opac');
 define('TING_INFOMEDIA_URL', 'http://useraccessinfomedia.addi.dk/1.1/');
 
@@ -186,17 +186,21 @@ class TingSearchController extends Controller
 
       $images = new CoverImageController();
       $images = $images->getCoverImage($faustNumbers);
-
       foreach ($this->searchResult->collections as $v) {
         $object = $v->objects[0];
+        try {
+          $title = $object->record['dc:title'][''][0];
+        }
+        catch (\Exception $e) {
+          continue;
+        }
         $item = $item_list->addChild("item");
         if ($object->id === '') {
           continue;
         }
         $item->addAttribute("id", $object->id);
-
         // Data from search result.
-        $item->addChild("title", htmlspecialchars($object->record['dc:title'][''][0]));
+        $item->addChild("title", htmlspecialchars($title));
         $author = !empty($object->record['dc:creator']['oss:sort'][0]) ? $object->record['dc:creator']['oss:sort'][0] : NULL;
         $item->addChild("author", htmlspecialchars($author));
         $item->addChild("type", htmlspecialchars($object->record['dc:type']['dkdcplus:BibDK-Type'][0]));

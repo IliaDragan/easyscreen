@@ -23,7 +23,7 @@ class CoverImageController extends Controller
       if ($fs->exists('covers/' . $faustHashFileName)) {
         // @todo return a link; Achtung dirty code here.
         // $request = Request::createFromGlobals();
-        $covers[$faust] = 'http://' . $_SERVER['HTTP_HOST'] . '/web/covers/' . $faustNumbers;
+        $covers[$faust] = 'http://' . $_SERVER['HTTP_HOST'] . '/web/covers/' . $faustNumbers[0];
       } else {
         unset($faust);
       }
