@@ -19,7 +19,7 @@
  * dkcclterm.sf=v and dkcclterm.uu=nt and (term.type=bog) not term.literaryForm=fiktion
  */
 
-namespace Inlead\Easyscreen\SearchBundle\Controller;
+namespace Inlead\Easyscreen\SearchBundle\Utils;
 
 /**
  * Class TingSearchCqlDoctor.

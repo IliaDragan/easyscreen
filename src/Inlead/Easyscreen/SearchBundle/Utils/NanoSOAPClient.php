@@ -1,6 +1,6 @@
 <?php
 
-namespace Inlead\Easyscreen\SearchBundle;
+namespace Inlead\Easyscreen\SearchBundle\Utils;
 
 use \DOMDocument;
 //use Symfony\Component\Serializer\Exception\Exception;

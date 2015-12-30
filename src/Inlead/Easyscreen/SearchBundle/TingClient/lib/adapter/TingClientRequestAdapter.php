@@ -5,7 +5,7 @@ namespace Inlead\Easyscreen\SearchBundle\TingClient\lib\adapter;
 use Inlead\Easyscreen\SearchBundle\TingClient\lib\log\TingClientLogger as TingClientLogger;
 use Inlead\Easyscreen\SearchBundle\TingClient\lib\log\TingClientVoidLogger as TingClientVoidLogger;
 use Inlead\Easyscreen\SearchBundle\TingClient\lib\request\TingClientRequest as TingClientRequest;
-use Inlead\Easyscreen\SearchBundle\NanoSOAPClient as NanoSOAPClient;
+use Inlead\Easyscreen\SearchBundle\Utils\NanoSOAPClient as NanoSOAPClient;
 
 class TingClientRequestAdapter {
   /**

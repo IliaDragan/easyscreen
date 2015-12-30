@@ -1,8 +1,7 @@
 <?php
 
-namespace Inlead\Easyscreen\SearchBundle\Controller;
+namespace Inlead\Easyscreen\SearchBundle\Utils;
 
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Filesystem\Filesystem;
 use Inlead\Easyscreen\SearchBundle\AddiClient\AdditionalInformationService as AdditionalInformationService;
 
@@ -11,7 +10,7 @@ define('ADDI_WSDL_URL', 'http://moreinfo.addi.dk/2.1/');
 define('ADDI_USERNAME', 'netpunkt');
 define('ADDI_PASSWORD', 'byspaste');
 define('ADDI_GROUP', '733000');
-class CoverImageController extends Controller
+class CoverImageController
 {
   public function getCoverImage($faustNumbers) {
     $fs = new Filesystem();

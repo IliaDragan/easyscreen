@@ -1,8 +1,6 @@
 <?php
 
-namespace Inlead\Easyscreen\SearchBundle\Controller;
-
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+namespace Inlead\Easyscreen\SearchBundle\Utils;
 
 define('TING_SEARCH_URL','http://opensearch.addi.dk/4.0.1/');
 define('TING_SCAN_URL', 'http://openscan.addi.dk/1.7/');
@@ -19,7 +17,7 @@ use Inlead\Easyscreen\SearchBundle\TingClient\lib\TingClient as TingClient;
 use Inlead\Easyscreen\SearchBundle\TingClient\lib\request\TingClientRequestFactory as TingClientRequestFactory;
 use Inlead\Easyscreen\SearchBundle\TingClient\lib\adapter\TingClientRequestAdapter as TingClientRequestAdapter;
 
-class TingSearchController extends Controller
+class TingSearchController
 {
   private $requestFactory;
   private $client;
