@@ -186,6 +186,7 @@ class TingSearchController
 
             $images = new CoverImageController();
             $images = $images->getCoverImage($faustNumbers);
+//             var_dump($images);
             foreach ($this->searchResult->collections as $v) {
                 $object = $v->objects[0];
 
@@ -205,8 +206,8 @@ class TingSearchController
 
                 // ToDo provide small images also.
                 if (isset($images[$object->localId])) {
-                    $item->addChild('img', $images[$object->localId]);
-                    $item->addChild('smallImg', $images[$object->localId]);
+                    $item->addChild('img', !empty($images[$object->localId]['detailUrl']) ? $images[$object->localId]['detailUrl'] : '');
+                    $item->addChild('smallImg', !empty($images[$object->localId]['thumbnailUrl']) ? $images[$object->localId]['thumbnailUrl'] : '');
                 }
             }
         }
