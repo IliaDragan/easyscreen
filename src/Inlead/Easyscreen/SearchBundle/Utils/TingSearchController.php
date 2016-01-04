@@ -101,17 +101,22 @@ class TingSearchController
             'facet.date',
             'facet.acSource',
         );
+
         if (isset($options['stepValue'])) {
             $request->setNumResults($options['stepValue']);
         }
+
         $request->setFacets((isset($options['facets'])) ? $options['facets'] : $default_facets);
         $request->setNumFacets((isset($options['numFacets'])) ? $options['numFacets'] : ((count($request->getFacets()) == 0) ? 0 : 10));
+
         if (isset($options['sort']) && $options['sort']) {
             $request->setSort($options['sort']);
         }
+
         if (isset($options['collectionType'])) {
             $request->setCollectionType($options['collectionType']);
         }
+
         $request->setAllObjects(isset($options['allObjects']) ? $options['allObjects'] : false);
 
         // Set search profile
@@ -126,7 +131,7 @@ class TingSearchController
 
     public function asXml($requestKey)
     {
-        $xml = new \SimpleXmlElement('<?xml version=\'1.0\'?><easyOpac></easyOpac>');
+        $xml = new \SimpleXmlElement('<easyOpac />');
 
         $xml->addAttribute('requestKey', $requestKey);
 
@@ -183,23 +188,20 @@ class TingSearchController
             $images = $images->getCoverImage($faustNumbers);
             foreach ($this->searchResult->collections as $v) {
                 $object = $v->objects[0];
-                try {
-                    $title = $object->record['dc:title'][''][0];
-                } catch (\Exception $e) {
+
+                if (empty($object->record['dc:title'][''][0]) || empty($object->id)) {
                     continue;
                 }
+
                 $item = $item_list->addChild('item');
-                if ($object->id === '') {
-                    continue;
-                }
+
                 $item->addAttribute('id', $object->id);
                 // Data from search result.
-                $item->addChild('title', htmlspecialchars($title));
-                $author = !empty($object->record['dc:creator']['oss:sort'][0]) ? $object->record['dc:creator']['oss:sort'][0] : null;
-                $item->addChild('author', htmlspecialchars($author));
-                $item->addChild('type', htmlspecialchars($object->record['dc:type']['dkdcplus:BibDK-Type'][0]));
-                $item->addChild('typeIcon');
-                $item->addChild('year', isset($object->record['dc:date'][''][0]) ? $object->record['dc:date'][''][0] : '');
+                $item->addChild('title', htmlspecialchars($object->record['dc:title'][''][0]));
+                $item->addChild('author', !empty($object->record['dc:creator']['oss:sort'][0]) ? htmlspecialchars($object->record['dc:creator']['oss:sort'][0]) : '');
+                $item->addChild('type', !empty($object->record['dc:type']['dkdcplus:BibDK-Type'][0]) ? htmlspecialchars($object->record['dc:type']['dkdcplus:BibDK-Type'][0]) : '');
+                $item->addChild('typeIcon', '');
+                $item->addChild('year', !empty($object->record['dc:date'][''][0]) ? $object->record['dc:date'][''][0] : '');
 
                 // ToDo provide small images also.
                 if (isset($images[$object->localId])) {
@@ -261,16 +263,11 @@ class TingSearchController
         if (!empty($faust)) {
             // Build request request and set object id.
             $request = $this->getRequestFactory()->getObjectRequest();
-            if (!is_object($request)) {
-                return null;
-            }
             $request->setObjectId($faust);
-
             $request->setAgency(self::TING_AGENCY_ID);
             $request->setProfile(self::TING_SEARCH_PROFILE);
 
-            // Get all relations for the object.
-
+            // Set complete relations for the object.
             $request->setAllRelations(true);
             $request->setRelationData('full');
 
@@ -285,33 +282,29 @@ class TingSearchController
                 $item->addAttribute('id', $object->id);
 
                 $item->addChild('title', htmlspecialchars($object->record['dc:title'][''][0]));
-
-                $author = !empty($object->record['dc:creator']['oss:sort'][0]) ? $object->record['dc:creator']['oss:sort'][0] : null;
+                $author = !empty($object->record['dc:creator']['oss:sort'][0]) ? $object->record['dc:creator']['oss:sort'][0] : '';
                 $item->addChild('author', htmlspecialchars($author));
 
-                $subj = array();
                 if (isset($object->record['dc:subject'])) {
-                    foreach ($object->record['dc:subject'] as $v) {
-                        $subj = array_merge($subj, $v);
-                    }
-                }
-                if (!empty($subj)) {
                     $subjects = $item->addChild('subjects');
-                    foreach ($subj as $v) {
-                        $subjects->addChild('subject', htmlspecialchars($v));
+                    foreach ($object->record['dc:subject'] as $dkdcplus) {
+                        foreach ($dkdcplus as $v) {
+                            $subjects->addChild('subject', htmlspecialchars($v));
+                        }
                     }
                 }
-                $item->addChild('type', $object->record['dc:type']['dkdcplus:BibDK-Type'][0]);
-                $item->addChild('physicalDescription', htmlspecialchars(isset($object->record['dcterms:abstract'][''][0]) ? $object->record['dcterms:abstract'][''][0] : ''));
 
-                $item->addChild('year', isset($object->record['dc:date'][''][0]) ? $object->record['dc:date'][''][0] : '');
+                $item->addChild('type', $object->record['dc:type']['dkdcplus:BibDK-Type'][0]);
+                $item->addChild('physicalDescription', !empty($object->record['dcterms:abstract'][''][0]) ? htmlspecialchars($object->record['dcterms:abstract'][''][0]) : '');
+                $item->addChild('year', !empty($object->record['dc:date'][''][0]) ? $object->record['dc:date'][''][0] : '');
+
                 $details = $item->addChild('details');
-                $details->addChild('language', isset($object->record['dc:language'][''][0]) ? $object->record['dc:language'][''][0] : '');
-                $details->addChild('publisher', htmlspecialchars(isset($object->record['dc:publisher'][''][0]) ? $object->record['dc:publisher'][''][0] : ''));
-                $details->addChild('version', htmlspecialchars(isset($object->record['dkdcplus:version'][''][0]) ? $object->record['dkdcplus:version'][''][0] : ''));
-                $details->addChild('audience', htmlspecialchars(isset($object->record['dcterms:audience'][''][0]) ? $object->record['dcterms:audience'][''][0] : ''));
-                $details->addChild('format', htmlspecialchars(isset($object->record['dc:format'][''][0]) ? $object->record['dc:format'][''][0] : ''));
-                $details->addChild('pages', htmlspecialchars(isset($object->record['dcterms:extent'][''][0]) ? $object->record['dcterms:extent'][''][0] : ''));
+                $details->addChild('language', !empty($object->record['dc:language'][''][0]) ? $object->record['dc:language'][''][0] : '');
+                $details->addChild('publisher', !empty($object->record['dc:publisher'][''][0]) ? htmlspecialchars($object->record['dc:publisher'][''][0]) : '');
+                $details->addChild('version', !empty($object->record['dkdcplus:version'][''][0]) ? htmlspecialchars($object->record['dkdcplus:version'][''][0]) : '');
+                $details->addChild('audience', !empty($object->record['dcterms:audience'][''][0]) ? htmlspecialchars($object->record['dcterms:audience'][''][0]) : '');
+                $details->addChild('format', !empty($object->record['dc:format'][''][0]) ? htmlspecialchars($object->record['dc:format'][''][0]) : '');
+                $details->addChild('pages', !empty($object->record['dcterms:extent'][''][0]) ? htmlspecialchars($object->record['dcterms:extent'][''][0]) : '');
 
                 $item->addChild('notes');
                 $item->addChild('issue');
@@ -321,15 +314,27 @@ class TingSearchController
                 $images = $images->getCoverImage(array(
                     $object->localId,
                 ));
+
                 if (isset($images[$object->localId])) {
                     $item->addChild('img', htmlspecialchars($images[$object->localId]));
                 }
 
                 $faust = explode(':', $object->id);
-                // fetch external resources.
+
+                // Fetch external resources.
                 $relations = $item->addChild('externalResources');
-                if (isset($object->relations)) {
-                    $this->fetchRelations($object->relations, $relations);
+                if (isset($object->relations) && is_array($object->relations)) {
+                    foreach ($object->relations as $relation) {
+                        $rel = $relations->addChild('resource');
+                        $rel->addAttribute('type', htmlspecialchars($relation->getRelationType()));
+                        $rel->addChild('title', htmlspecialchars($relation->getTitle()));
+                        $rel->addChild('author', htmlspecialchars($relation->getCreator()));
+                        $rel->addChild('abstract', htmlspecialchars($relation->getAbstract()));
+                        $rel->addChild('audience', htmlspecialchars($relation->getAudience()));
+                        $rel->addChild('year', htmlspecialchars($relation->getDate()));
+                        $rel->addChild('isPartOf', htmlspecialchars($relation->getPartOf()));
+                        $rel->addChild('description', htmlspecialchars($relation->getDescription()));
+                    }
                 }
             }
 
@@ -337,21 +342,6 @@ class TingSearchController
         }
 
         return null;
-    }
-
-    private function fetchRelations(array $relations, \SimpleXMLElement $xmlObj)
-    {
-        foreach ($relations as $relation) {
-            $rel = $xmlObj->addChild('resource');
-            $rel->addAttribute('type', htmlspecialchars($relation->getRelationType()));
-            $rel->addChild('title', htmlspecialchars($relation->getTitle()));
-            $rel->addChild('author', htmlspecialchars($relation->getCreator()));
-            $rel->addChild('abstract', htmlspecialchars($relation->getAbstract()));
-            $rel->addChild('audience', htmlspecialchars($relation->getAudience()));
-            $rel->addChild('year', htmlspecialchars($relation->getDate()));
-            $rel->addChild('isPartOf', htmlspecialchars($relation->getPartOf()));
-            $rel->addChild('description', htmlspecialchars($relation->getDescription()));
-        }
     }
 
     public function getDepartments()
