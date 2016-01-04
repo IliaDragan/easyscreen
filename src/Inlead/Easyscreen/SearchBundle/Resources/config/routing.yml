@@ -6,10 +6,6 @@ search:
     path:     /search
     defaults: { _controller: InleadEasyscreenSearchBundle:Search:search }
 
-single:
-    path:     /single
-    defaults: { _controller: InleadEasyscreenSearchBundle:Search:single }
-
 departments:
     path:     /departments
     defaults: { _controller: InleadEasyscreenSearchBundle:Search:departments }

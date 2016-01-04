@@ -10,6 +10,7 @@ define('ADDI_WSDL_URL', 'http://moreinfo.addi.dk/2.1/');
 define('ADDI_USERNAME', 'netpunkt');
 define('ADDI_PASSWORD', 'byspaste');
 define('ADDI_GROUP', '733000');
+
 class CoverImageController
 {
   public function getCoverImage($faustNumbers) {
@@ -47,7 +48,7 @@ class CoverImageController
    * @return mixed
    */
   private function cacheCover($url, $newfname) {
-    $destination_folder = './covers/';
+    $destination_folder = '../web/covers/';
     $file = fopen ($url, "rb");
     if ($file) {
       $newf = fopen ($destination_folder . $newfname, "wb");

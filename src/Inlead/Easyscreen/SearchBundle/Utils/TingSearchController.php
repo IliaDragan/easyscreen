@@ -225,7 +225,6 @@ class TingSearchController
     private function execute(TingClientRequest $request)
     {
         $res = $this->getClient()->execute($request);
-
         // When the request is for fulltext (doc-book) the result is XML but the
         // next part expect JSON only formatted input. So this hack simply return
         // the XML for now as later on we have to work with open format and XML
@@ -276,7 +275,7 @@ class TingSearchController
             // Execute the request.
             $object = $this->execute($request);
 
-            $xml = new \SimpleXmlElement('<?xml version=\'1.0\'?><easyOpac></easyOpac>');
+            $xml = new \SimpleXmlElement('<easyOpac />');
             $xml->addAttribute('requestKey', $requestKey);
 
             if (is_object($object)) {
@@ -324,22 +323,11 @@ class TingSearchController
                     $item->addChild("img", htmlspecialchars($images[$object->localId]));
                 }
 
-                $hardcoddedIds = array(
-                    '24223795',
-                    '25855485',
-                    '23753804',
-                    '50650898',
-                    '26923530'
-                );
                 $faust = explode(':', $object->id);
                 // fetch external resources.
                 $relations = $item->addChild('externalResources');
                 if (isset($object->relations)) {
                     $this->fetchRelations($object->relations, $relations);
-                }
-
-                if (in_array($faust[1], $hardcoddedIds)) {
-                    $this->addHardcoddedRelation($faust[1], $relations);
                 }
             }
 
@@ -349,7 +337,7 @@ class TingSearchController
         return NULL;
     }
 
-    private function fetchRelations(array $relations, $xmlObj)
+    private function fetchRelations(array $relations, \SimpleXMLElement $xmlObj)
     {
         foreach ($relations as $relation) {
             $rel = $xmlObj->addChild('resource');
@@ -364,21 +352,9 @@ class TingSearchController
         }
     }
 
-    private function addHardcoddedRelation($faust, $xmlObj)
-    {
-        $file = fopen($faust, "r");
-        $a = simplexml_load_string(fread($file, filesize($faust)));
-        fclose($file);
-        $rel = $xmlObj->addChild('resource');
-        $rel->addAttribute('type', 'literatursiden');
-        $rel->addChild('title', htmlspecialchars($a->title));
-        $rel->addChild('abstract', htmlspecialchars($a->abstract));
-        $rel->addChild('description', htmlspecialchars($a->description));
-    }
-
     public function getDepartments()
     {
-        $xml = new \SimpleXmlElement('<?xml version="1.0" encoding="UTF-8"?><departments></departments>');
+        $xml = new \SimpleXmlElement('<departments />');
 
         $facet = 'facet.department';
         $options = array(
