@@ -2,9 +2,9 @@
 /**
  * @file
  */
+
 namespace Inlead\Easyscreen\SearchBundle\Utils;
 
-use Inlead\Easyscreen\SearchBundle;
 use Inlead\Easyscreen\SearchBundle\TingClient\lib\TingClient as TingClient;
 use Inlead\Easyscreen\SearchBundle\TingClient\lib\request\TingClientRequest;
 use Inlead\Easyscreen\SearchBundle\TingClient\lib\request\TingClientRequestFactory as TingClientRequestFactory;
@@ -31,52 +31,52 @@ class TingSearchController
             'name' => 'facet.category',
             'title' => 'Børn/voksen',
             'sorting' => 'default',
-            'weight' => '-10'
+            'weight' => '-10',
         ),
         1 => array(
             'name' => 'facet.type',
             'title' => 'Materialetype',
             'sorting' => 'default',
-            'weight' => '-9'
+            'weight' => '-9',
         ),
         2 => array(
             'name' => 'facet.acSource',
             'title' => 'Kilde',
             'sorting' => 'default',
-            'weight' => '-8'
+            'weight' => '-8',
         ),
         3 => array(
             'name' => 'facet.creator',
             'title' => 'Forfatter',
             'sorting' => 'default',
-            'weight' => '-7'
+            'weight' => '-7',
         ),
         4 => array(
             'name' => 'facet.language',
             'title' => 'Sprog',
             'sorting' => 'default',
-            'weight' => '-6'
+            'weight' => '-6',
         ),
         5 => array(
             'name' => 'facet.subject',
             'title' => 'Emne',
             'sorting' => 'default',
-            'weight' => '-5'
+            'weight' => '-5',
         ),
         6 => array(
             'name' => 'facet.date',
             'title' => 'Årstal',
             'sorting' => 'numeric_reverse',
-            'weight' => '-4'
-        )
+            'weight' => '-4',
+        ),
     );
 
     public function doSearch($query, $offset, $results_per_page = 10, array $options = array())
     {
         $request = $this->getRequestFactory()->getSearchRequest();
 
-        if (! is_object($request)) {
-            return NULL;
+        if (!is_object($request)) {
+            return null;
         }
         $request->setQuery($query);
         $request->setAgency(self::TING_AGENCY_ID);
@@ -84,7 +84,7 @@ class TingSearchController
         $request->setStart($offset);
         $request->setNumResults($results_per_page);
 
-        if (! isset($options['facets'])) {
+        if (!isset($options['facets'])) {
             $options['facets'] = array();
             // Populate facets with configured facets.
             foreach ($this->facetbrowser as $facet) {
@@ -99,7 +99,7 @@ class TingSearchController
             'facet.category',
             'facet.language',
             'facet.date',
-            'facet.acSource'
+            'facet.acSource',
         );
         if (isset($options['stepValue'])) {
             $request->setNumResults($options['stepValue']);
@@ -112,7 +112,7 @@ class TingSearchController
         if (isset($options['collectionType'])) {
             $request->setCollectionType($options['collectionType']);
         }
-        $request->setAllObjects(isset($options['allObjects']) ? $options['allObjects'] : FALSE);
+        $request->setAllObjects(isset($options['allObjects']) ? $options['allObjects'] : false);
 
         // Set search profile
         $request->setProfile(self::TING_SEARCH_PROFILE);
@@ -188,23 +188,23 @@ class TingSearchController
                 } catch (\Exception $e) {
                     continue;
                 }
-                $item = $item_list->addChild("item");
+                $item = $item_list->addChild('item');
                 if ($object->id === '') {
                     continue;
                 }
-                $item->addAttribute("id", $object->id);
+                $item->addAttribute('id', $object->id);
                 // Data from search result.
-                $item->addChild("title", htmlspecialchars($title));
-                $author = ! empty($object->record['dc:creator']['oss:sort'][0]) ? $object->record['dc:creator']['oss:sort'][0] : NULL;
-                $item->addChild("author", htmlspecialchars($author));
-                $item->addChild("type", htmlspecialchars($object->record['dc:type']['dkdcplus:BibDK-Type'][0]));
-                $item->addChild("typeIcon");
-                $item->addChild("year", isset($object->record['dc:date'][''][0]) ? $object->record['dc:date'][''][0] : '');
+                $item->addChild('title', htmlspecialchars($title));
+                $author = !empty($object->record['dc:creator']['oss:sort'][0]) ? $object->record['dc:creator']['oss:sort'][0] : null;
+                $item->addChild('author', htmlspecialchars($author));
+                $item->addChild('type', htmlspecialchars($object->record['dc:type']['dkdcplus:BibDK-Type'][0]));
+                $item->addChild('typeIcon');
+                $item->addChild('year', isset($object->record['dc:date'][''][0]) ? $object->record['dc:date'][''][0] : '');
 
                 // ToDo provide small images also.
                 if (isset($images[$object->localId])) {
-                    $item->addChild("img", $images[$object->localId]);
-                    $item->addChild("smallImg", $images[$object->localId]);
+                    $item->addChild('img', $images[$object->localId]);
+                    $item->addChild('smallImg', $images[$object->localId]);
                 }
             }
         }
@@ -216,9 +216,10 @@ class TingSearchController
 
     private function getClient()
     {
-        if (! isset($this->client)) {
+        if (!isset($this->client)) {
             $this->client = new TingClient(new TingClientRequestAdapter());
         }
+
         return $this->client;
     }
 
@@ -238,7 +239,7 @@ class TingSearchController
 
     private function getRequestFactory()
     {
-        if (! isset($this->requestFactory)) {
+        if (!isset($this->requestFactory)) {
             $urls = array(
                 'search' => self::TING_SEARCH_URL,
                 'scan' => self::TING_SCAN_URL,
@@ -246,21 +247,22 @@ class TingSearchController
                 'collection' => self::TING_SEARCH_URL,
                 'spell' => self::TING_SPELL_URL,
                 'recommendation' => self::TING_RECOMMENDATION_URL,
-                'infomedia' => self::TING_INFOMEDIA_URL
+                'infomedia' => self::TING_INFOMEDIA_URL,
             );
 
             $this->requestFactory = new TingClientRequestFactory($urls);
         }
+
         return $this->requestFactory;
     }
 
     public function getObject($faust, $requestKey)
     {
-        if (! empty($faust)) {
+        if (!empty($faust)) {
             // Build request request and set object id.
             $request = $this->getRequestFactory()->getObjectRequest();
-            if (! is_object($request)) {
-                return NULL;
+            if (!is_object($request)) {
+                return null;
             }
             $request->setObjectId($faust);
 
@@ -269,7 +271,7 @@ class TingSearchController
 
             // Get all relations for the object.
 
-            $request->setAllRelations(TRUE);
+            $request->setAllRelations(true);
             $request->setRelationData('full');
 
             // Execute the request.
@@ -279,13 +281,13 @@ class TingSearchController
             $xml->addAttribute('requestKey', $requestKey);
 
             if (is_object($object)) {
-                $item = $xml->addChild("item");
-                $item->addAttribute("id", $object->id);
+                $item = $xml->addChild('item');
+                $item->addAttribute('id', $object->id);
 
-                $item->addChild("title", htmlspecialchars($object->record['dc:title'][''][0]));
+                $item->addChild('title', htmlspecialchars($object->record['dc:title'][''][0]));
 
-                $author = ! empty($object->record['dc:creator']['oss:sort'][0]) ? $object->record['dc:creator']['oss:sort'][0] : NULL;
-                $item->addChild("author", htmlspecialchars($author));
+                $author = !empty($object->record['dc:creator']['oss:sort'][0]) ? $object->record['dc:creator']['oss:sort'][0] : null;
+                $item->addChild('author', htmlspecialchars($author));
 
                 $subj = array();
                 if (isset($object->record['dc:subject'])) {
@@ -293,34 +295,34 @@ class TingSearchController
                         $subj = array_merge($subj, $v);
                     }
                 }
-                if (! empty($subj)) {
+                if (!empty($subj)) {
                     $subjects = $item->addChild('subjects');
                     foreach ($subj as $v) {
                         $subjects->addChild('subject', htmlspecialchars($v));
                     }
                 }
-                $item->addChild("type", $object->record['dc:type']['dkdcplus:BibDK-Type'][0]);
-                $item->addChild("physicalDescription", htmlspecialchars(isset($object->record['dcterms:abstract'][''][0]) ? $object->record['dcterms:abstract'][''][0] : ''));
+                $item->addChild('type', $object->record['dc:type']['dkdcplus:BibDK-Type'][0]);
+                $item->addChild('physicalDescription', htmlspecialchars(isset($object->record['dcterms:abstract'][''][0]) ? $object->record['dcterms:abstract'][''][0] : ''));
 
-                $item->addChild("year", isset($object->record['dc:date'][''][0]) ? $object->record['dc:date'][''][0] : '');
+                $item->addChild('year', isset($object->record['dc:date'][''][0]) ? $object->record['dc:date'][''][0] : '');
                 $details = $item->addChild('details');
                 $details->addChild('language', isset($object->record['dc:language'][''][0]) ? $object->record['dc:language'][''][0] : '');
-                $details->addChild("publisher", htmlspecialchars(isset($object->record['dc:publisher'][''][0]) ? $object->record['dc:publisher'][''][0] : ''));
-                $details->addChild("version", htmlspecialchars(isset($object->record['dkdcplus:version'][''][0]) ? $object->record['dkdcplus:version'][''][0] : ''));
-                $details->addChild("audience", htmlspecialchars(isset($object->record['dcterms:audience'][''][0]) ? $object->record['dcterms:audience'][''][0] : ''));
-                $details->addChild("format", htmlspecialchars(isset($object->record['dc:format'][''][0]) ? $object->record['dc:format'][''][0] : ''));
-                $details->addChild("pages", htmlspecialchars(isset($object->record['dcterms:extent'][''][0]) ? $object->record['dcterms:extent'][''][0] : ''));
+                $details->addChild('publisher', htmlspecialchars(isset($object->record['dc:publisher'][''][0]) ? $object->record['dc:publisher'][''][0] : ''));
+                $details->addChild('version', htmlspecialchars(isset($object->record['dkdcplus:version'][''][0]) ? $object->record['dkdcplus:version'][''][0] : ''));
+                $details->addChild('audience', htmlspecialchars(isset($object->record['dcterms:audience'][''][0]) ? $object->record['dcterms:audience'][''][0] : ''));
+                $details->addChild('format', htmlspecialchars(isset($object->record['dc:format'][''][0]) ? $object->record['dc:format'][''][0] : ''));
+                $details->addChild('pages', htmlspecialchars(isset($object->record['dcterms:extent'][''][0]) ? $object->record['dcterms:extent'][''][0] : ''));
 
-                $item->addChild("notes");
-                $item->addChild("issue");
-                $item->addChild("price");
+                $item->addChild('notes');
+                $item->addChild('issue');
+                $item->addChild('price');
 
                 $images = new CoverImageController();
                 $images = $images->getCoverImage(array(
-                    $object->localId
+                    $object->localId,
                 ));
                 if (isset($images[$object->localId])) {
-                    $item->addChild("img", htmlspecialchars($images[$object->localId]));
+                    $item->addChild('img', htmlspecialchars($images[$object->localId]));
                 }
 
                 $faust = explode(':', $object->id);
@@ -334,7 +336,7 @@ class TingSearchController
             return $xml->asXML();
         }
 
-        return NULL;
+        return null;
     }
 
     private function fetchRelations(array $relations, \SimpleXMLElement $xmlObj)
@@ -359,11 +361,11 @@ class TingSearchController
         $facet = 'facet.department';
         $options = array(
             'facets' => array(
-                $facet
+                $facet,
             ),
             'numFacets' => 9999,
-            'reply_only' => TRUE,
-            'sort' => 'random'
+            'reply_only' => true,
+            'sort' => 'random',
         );
         $this->doSearch('*', 0, 0, $options);
 
