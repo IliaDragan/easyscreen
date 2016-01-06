@@ -1,18 +1,18 @@
-inlead_easyscreen_search_homepage:
-    path:     /hello/{name}
+homepage:
+    path:     /
     defaults: { _controller: InleadEasyscreenSearchBundle:Default:index }
 
 search:
     path:     /search
     defaults: { _controller: InleadEasyscreenSearchBundle:Search:search }
 
-single:
-    path:     /single
-    defaults: { _controller: InleadEasyscreenSearchBundle:Search:single }
-
 departments:
     path:     /departments
     defaults: { _controller: InleadEasyscreenSearchBundle:Search:departments }
+
+branches:
+    path:     /branches
+    defaults: { _controller: InleadEasyscreenSearchBundle:Provider:branches }
 
 availability:
     path:     /availability

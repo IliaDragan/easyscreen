@@ -1,5 +1,10 @@
 <?php
+/**
+ * @file
+ */
 
-class TingClientException extends Exception {
+namespace Inlead\Easyscreen\SearchBundle\TingClient\lib\exception;
+
+class TingClientException extends \Exception {
 }
 

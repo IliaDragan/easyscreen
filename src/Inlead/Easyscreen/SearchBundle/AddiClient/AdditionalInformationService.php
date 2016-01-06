@@ -128,7 +128,7 @@ class AdditionalInformationService {
 
         // Check if the request went through.
         if ($data->requestStatus->statusEnum != 'ok') {
-          throw new Exception($response->requestStatus->statusEnum . ': ' . $response->requestStatus->errorText);
+          throw new Exception($data->requestStatus->statusEnum . ': ' . $data->requestStatus->errorText);
         }
 
         // Move result into the responce object.
