@@ -5,10 +5,12 @@
 
 namespace Inlead\Easyscreen\SearchBundle\Utils;
 
-use Inlead\Easyscreen\SearchBundle\TingClient\lib\TingClient as TingClient;
+use Inlead\Easyscreen\SearchBundle\TingClient\lib\adapter\TingClientRequestAdapter;
 use Inlead\Easyscreen\SearchBundle\TingClient\lib\request\TingClientRequest;
-use Inlead\Easyscreen\SearchBundle\TingClient\lib\request\TingClientRequestFactory as TingClientRequestFactory;
-use Inlead\Easyscreen\SearchBundle\TingClient\lib\adapter\TingClientRequestAdapter as TingClientRequestAdapter;
+use Inlead\Easyscreen\SearchBundle\TingClient\lib\request\TingClientRequestFactory;
+use Inlead\Easyscreen\SearchBundle\TingClient\lib\request\TingClientObjectRequest;
+use Inlead\Easyscreen\SearchBundle\TingClient\lib\result\search\TingClientSearchResult;
+use Inlead\Easyscreen\SearchBundle\TingClient\lib\TingClient;
 
 class TingSearchController
 {
@@ -71,7 +73,7 @@ class TingSearchController
         ),
     );
 
-    public function doSearch($query, $offset, $results_per_page = 10, array $options = array())
+    public function getSearchResult($query, $offset, $results_per_page = 10, array $options = array(), $requestKey = '', $branch = '')
     {
         $request = $this->getRequestFactory()->getSearchRequest();
 
@@ -126,11 +128,8 @@ class TingSearchController
 
         $this->searchResult = $this->execute($request);
 
-        return $this;
-    }
+        $this->branchFilter($branch);
 
-    public function asXml($requestKey)
-    {
         $xml = new \SimpleXmlElement('<easyOpac />');
 
         $xml->addAttribute('requestKey', $requestKey);
@@ -154,7 +153,7 @@ class TingSearchController
             $type->addAttribute('name', $v);
         }
 
-        // Create filters (facets)
+        // Create filters (facets).
         $item_filters = $xml->addChild('filters');
 
         if (is_object($this->searchResult->facets)) {
@@ -186,7 +185,7 @@ class TingSearchController
 
             $images = new CoverImageController();
             $images = $images->getCoverImage($faustNumbers);
-//             var_dump($images);
+
             foreach ($this->searchResult->collections as $v) {
                 $object = $v->objects[0];
 
@@ -261,88 +260,85 @@ class TingSearchController
 
     public function getObject($faust, $requestKey)
     {
-        if (!empty($faust)) {
-            // Build request request and set object id.
-            $request = $this->getRequestFactory()->getObjectRequest();
-            $request->setObjectId($faust);
-            $request->setAgency(self::TING_AGENCY_ID);
-            $request->setProfile(self::TING_SEARCH_PROFILE);
+        // Build request request and set object id.
+        $request = $this->getRequestFactory()->getObjectRequest();
+        $request->setObjectId($faust);
+        $request->setAgency(self::TING_AGENCY_ID);
+        $request->setProfile(self::TING_SEARCH_PROFILE);
 
-            // Set complete relations for the object.
-            $request->setAllRelations(true);
-            $request->setRelationData('full');
+        // Set complete relations for the object.
+        $request->setAllRelations(true);
+        $request->setRelationData('full');
 
-            // Execute the request.
-            $object = $this->execute($request);
+        // Execute the request.
+        $object = $this->execute($request);
 
-            $xml = new \SimpleXmlElement('<easyOpac />');
-            $xml->addAttribute('requestKey', $requestKey);
-
-            if (is_object($object)) {
-                $item = $xml->addChild('item');
-                $item->addAttribute('id', $object->id);
-
-                $item->addChild('title', htmlspecialchars($object->record['dc:title'][''][0]));
-                $author = !empty($object->record['dc:creator']['oss:sort'][0]) ? $object->record['dc:creator']['oss:sort'][0] : '';
-                $item->addChild('author', htmlspecialchars($author));
-
-                if (isset($object->record['dc:subject'])) {
-                    $subjects = $item->addChild('subjects');
-                    foreach ($object->record['dc:subject'] as $dkdcplus) {
-                        foreach ($dkdcplus as $v) {
-                            $subjects->addChild('subject', htmlspecialchars($v));
-                        }
-                    }
-                }
-
-                $item->addChild('type', $object->record['dc:type']['dkdcplus:BibDK-Type'][0]);
-                $item->addChild('physicalDescription', !empty($object->record['dcterms:abstract'][''][0]) ? htmlspecialchars($object->record['dcterms:abstract'][''][0]) : '');
-                $item->addChild('year', !empty($object->record['dc:date'][''][0]) ? $object->record['dc:date'][''][0] : '');
-
-                $details = $item->addChild('details');
-                $details->addChild('language', !empty($object->record['dc:language'][''][0]) ? $object->record['dc:language'][''][0] : '');
-                $details->addChild('publisher', !empty($object->record['dc:publisher'][''][0]) ? htmlspecialchars($object->record['dc:publisher'][''][0]) : '');
-                $details->addChild('version', !empty($object->record['dkdcplus:version'][''][0]) ? htmlspecialchars($object->record['dkdcplus:version'][''][0]) : '');
-                $details->addChild('audience', !empty($object->record['dcterms:audience'][''][0]) ? htmlspecialchars($object->record['dcterms:audience'][''][0]) : '');
-                $details->addChild('format', !empty($object->record['dc:format'][''][0]) ? htmlspecialchars($object->record['dc:format'][''][0]) : '');
-                $details->addChild('pages', !empty($object->record['dcterms:extent'][''][0]) ? htmlspecialchars($object->record['dcterms:extent'][''][0]) : '');
-
-                $item->addChild('notes');
-                $item->addChild('issue');
-                $item->addChild('price');
-
-                $images = new CoverImageController();
-                $images = $images->getCoverImage(array(
-                    $object->localId,
-                ));
-
-                if (isset($images[$object->localId])) {
-                    $item->addChild('img', htmlspecialchars($images[$object->localId]));
-                }
-
-                $faust = explode(':', $object->id);
-
-                // Fetch external resources.
-                $relations = $item->addChild('externalResources');
-                if (isset($object->relations) && is_array($object->relations)) {
-                    foreach ($object->relations as $relation) {
-                        $rel = $relations->addChild('resource');
-                        $rel->addAttribute('type', htmlspecialchars($relation->getRelationType()));
-                        $rel->addChild('title', htmlspecialchars($relation->getTitle()));
-                        $rel->addChild('author', htmlspecialchars($relation->getCreator()));
-                        $rel->addChild('abstract', htmlspecialchars($relation->getAbstract()));
-                        $rel->addChild('audience', htmlspecialchars($relation->getAudience()));
-                        $rel->addChild('year', htmlspecialchars($relation->getDate()));
-                        $rel->addChild('isPartOf', htmlspecialchars($relation->getPartOf()));
-                        $rel->addChild('description', htmlspecialchars($relation->getDescription()));
-                    }
-                }
-            }
-
-            return $xml->asXML();
+        if (!is_object($object)) {
+            throw new \Exception('No response received. Check the faust number.');
         }
 
-        return null;
+        $xml = new \SimpleXmlElement('<easyOpac />');
+        $xml->addAttribute('requestKey', $requestKey);
+
+        $item = $xml->addChild('item');
+        $item->addAttribute('id', $object->id);
+
+        $item->addChild('title', htmlspecialchars($object->record['dc:title'][''][0]));
+        $author = !empty($object->record['dc:creator']['oss:sort'][0]) ? $object->record['dc:creator']['oss:sort'][0] : '';
+        $item->addChild('author', htmlspecialchars($author));
+
+        if (isset($object->record['dc:subject'])) {
+            $subjects = $item->addChild('subjects');
+            foreach ($object->record['dc:subject'] as $dkdcplus) {
+                foreach ($dkdcplus as $v) {
+                    $subjects->addChild('subject', htmlspecialchars($v));
+                }
+            }
+        }
+
+        $item->addChild('type', $object->record['dc:type']['dkdcplus:BibDK-Type'][0]);
+        $item->addChild('physicalDescription', !empty($object->record['dcterms:abstract'][''][0]) ? htmlspecialchars($object->record['dcterms:abstract'][''][0]) : '');
+        $item->addChild('year', !empty($object->record['dc:date'][''][0]) ? $object->record['dc:date'][''][0] : '');
+
+        $details = $item->addChild('details');
+        $details->addChild('language', !empty($object->record['dc:language'][''][0]) ? $object->record['dc:language'][''][0] : '');
+        $details->addChild('publisher', !empty($object->record['dc:publisher'][''][0]) ? htmlspecialchars($object->record['dc:publisher'][''][0]) : '');
+        $details->addChild('version', !empty($object->record['dkdcplus:version'][''][0]) ? htmlspecialchars($object->record['dkdcplus:version'][''][0]) : '');
+        $details->addChild('audience', !empty($object->record['dcterms:audience'][''][0]) ? htmlspecialchars($object->record['dcterms:audience'][''][0]) : '');
+        $details->addChild('format', !empty($object->record['dc:format'][''][0]) ? htmlspecialchars($object->record['dc:format'][''][0]) : '');
+        $details->addChild('pages', !empty($object->record['dcterms:extent'][''][0]) ? htmlspecialchars($object->record['dcterms:extent'][''][0]) : '');
+
+        $item->addChild('notes');
+        $item->addChild('issue');
+        $item->addChild('price');
+
+        $images = new CoverImageController();
+        $images = $images->getCoverImage(array(
+            $object->localId,
+        ));
+
+        if (!empty($images[$object->localId])) {
+            $item->addChild('img', !empty($images[$object->localId]['detailUrl']) ? $images[$object->localId]['detailUrl'] : '');
+            $item->addChild('thumb', !empty($images[$object->localId]['thumbnailUrl']) ? $images[$object->localId]['thumbnailUrl'] : '');
+        }
+
+        // Fetch external resources.
+        $relations = $item->addChild('externalResources');
+        if (isset($object->relations) && is_array($object->relations)) {
+            foreach ($object->relations as $relation) {
+                $rel = $relations->addChild('resource');
+                $rel->addAttribute('type', htmlspecialchars($relation->getRelationType()));
+                $rel->addChild('title', htmlspecialchars($relation->getTitle()));
+                $rel->addChild('author', htmlspecialchars($relation->getCreator()));
+                $rel->addChild('abstract', htmlspecialchars($relation->getAbstract()));
+                $rel->addChild('audience', htmlspecialchars($relation->getAudience()));
+                $rel->addChild('year', htmlspecialchars($relation->getDate()));
+                $rel->addChild('isPartOf', htmlspecialchars($relation->getPartOf()));
+                $rel->addChild('description', htmlspecialchars($relation->getDescription()));
+            }
+        }
+
+        return $xml->asXML();
     }
 
     public function getDepartments()
@@ -358,7 +354,7 @@ class TingSearchController
             'reply_only' => true,
             'sort' => 'random',
         );
-        $this->doSearch('*', 0, 0, $options);
+        $this->getSearchResult('*', 0, 0, $options);
 
         foreach ($this->searchResult->facets[$facet]->terms as $term => $count) {
             $dep = $xml->addChild('department');
@@ -367,5 +363,57 @@ class TingSearchController
         }
 
         return $xml->asXML();
+    }
+
+    private function branchFilter($branch)
+    {
+        if (empty($branch) || !is_object($this->searchResult) || !($this->searchResult instanceof TingClientSearchResult) || $this->searchResult->numTotalCollections == 0) {
+            return;
+        }
+
+        // Accumulate object id's first.
+        $object_ids = array();
+        foreach ($this->searchResult->collections as $collection) {
+            $object = reset($collection->objects);
+            $object_ids[] = $object->localId;
+        }
+
+        // Fetch holdings.
+        $provider = new AlmaProvider();
+        $details = $provider->getRecordDetail($object_ids);
+
+        // Pick items that exist in the specified branch.
+        $matches = array();
+
+        foreach ($details['records'] as $item_id => $detail) {
+            // Periodical items.
+            if (isset($detail['issues'])) {
+                foreach ($detail['issues'] as $year => $holdings) {
+                    foreach ($holdings as $holding) {
+                        if (in_array($branch, $holding['branches'])) {
+                            $matches[] = $item_id;
+                        }
+                    }
+                }
+            }
+            // Normal items.
+            elseif (isset($detail['holdings'])) {
+                foreach ($detail['holdings'] as $holding) {
+                    if ($holding['branch_id'] == $branch) {
+                        $matches[] = $item_id;
+                    }
+                }
+            }
+        }
+
+        // Wipe out items that do not meet the branch filter.
+        $obsolete = array_diff($object_ids, $matches);
+        foreach ($this->searchResult->collections as $k => $collection) {
+            $object = reset($collection->objects);
+            if (in_array($object->localId, $obsolete)) {
+                unset($this->searchResult->collections[$k]);
+                $this->searchResult->numTotalCollections--;
+            }
+        }
     }
 }

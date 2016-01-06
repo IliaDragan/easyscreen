@@ -21,6 +21,8 @@ class SearchController extends Controller
         'limit' => null,
         'facets' => null,
         'recordId' => null,
+        'requestKey' => null,
+        'branch' => null,
     );
 
     public function searchAction(Request $request)
@@ -45,7 +47,7 @@ class SearchController extends Controller
                 $this->parameters['facets'] = json_decode($this->parameters['facets']);
             }
 
-            // Add facets to the query, if any
+            // Add facets to the query, if any.
             if (count($this->parameters['facets']) > 0) {
                 foreach ($this->parameters['facets'] as $k => $v) {
                     $this->parameters['query'] .= " AND $k=\"$v\" ";
@@ -53,10 +55,10 @@ class SearchController extends Controller
             }
 
             $search = new TingSearchController();
-            $result = $search->doSearch($this->parameters['query'], $this->parameters['offset'], $this->parameters['limit'], $options)->asXml($request->query->get('requestKey'));
+            $result = $search->getSearchResult($this->parameters['query'], $this->parameters['offset'], $this->parameters['limit'], $options, $this->parameters['requestKey'], $this->parameters['branch']);
         } elseif ($this->parameters['action'] == 'item') {
             $search = new TingSearchController();
-            $result = $search->getObject($this->parameters['recordId'], $request->query->get('requestKey'));
+            $result = $search->getObject($this->parameters['recordId'], $this->parameters['requestKey']);
         }
 
         $response = new Response();

@@ -2,7 +2,8 @@
 
 namespace Inlead\Easyscreen\SearchBundle\TingClient\lib\request;
 
-use Inlead\Easyscreen\SearchBundle\TingClient\lib\adapter\TingClientRequestAdapter as TingClientRequestAdapter;
+use Inlead\Easyscreen\SearchBundle\TingClient\lib\adapter\TingClientRequestAdapter;
+use Inlead\Easyscreen\SearchBundle\TingClient\lib\exception\TingClientException;
 
 abstract class TingClientRequest {
   private $wsdlUrl;

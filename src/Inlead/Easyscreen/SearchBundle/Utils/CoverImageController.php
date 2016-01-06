@@ -1,30 +1,34 @@
 <?php
+/**
+ * @file
+ */
 
 namespace Inlead\Easyscreen\SearchBundle\Utils;
 
 use Symfony\Component\Filesystem\Filesystem;
 use Inlead\Easyscreen\SearchBundle\AddiClient\AdditionalInformationService as AdditionalInformationService;
 
-define('ADDI_WSDL_URL', 'http://moreinfo.addi.dk/2.1/');
-define('ADDI_USERNAME', 'netpunkt');
-define('ADDI_PASSWORD', 'byspaste');
-define('ADDI_GROUP', '733000');
-
 class CoverImageController
 {
+    const ADDI_WSDL_URL = 'http://moreinfo.addi.dk/2.1/';
+    const ADDI_USERNAME = 'netpunkt';
+    const ADDI_PASSWORD = 'byspaste';
+    const ADDI_GROUP = '733000';
+
     public function getCoverImage($faustNumbers)
     {
         $fs = new Filesystem();
         $covers = array();
 
-        $addi = new AdditionalInformationService(ADDI_WSDL_URL, ADDI_USERNAME, ADDI_GROUP, ADDI_PASSWORD);
+        $addi = new AdditionalInformationService(self::ADDI_WSDL_URL, self::ADDI_USERNAME, self::ADDI_GROUP, self::ADDI_PASSWORD);
         $response = $addi->getByFaustNumber($faustNumbers);
 
         foreach ($faustNumbers as $faust) {
             if (isset($response[$faust])) {
                 foreach ($response[$faust] as $prop => $value) {
-                    $localFilename = $this->cacheCover($value, $this->getImageFilename($faust . $prop));
-                    $covers[$faust][$prop] = 'http://'.$_SERVER['HTTP_HOST'].'/web/covers/'.$localFilename;
+                    $localFilename = $this->getImageFilename($faust . $prop);
+                    $this->cacheCover($fs, $value, $localFilename);
+                    $covers[$faust][$prop] = 'http://' . $_SERVER['HTTP_HOST'] . '/web/covers/' . $localFilename;
                 }
             }
         }
@@ -40,30 +44,21 @@ class CoverImageController
     /**
     * Save cover from Addi on local storage.
     *
-    * @param $url
-    * @param $newfname
-    *
-    * @return mixed
+    * @param Filesystem $fs
+    * @param string $source
+    * @param string $target
     */
-    private function cacheCover($url, $newfname)
+    private function cacheCover(Filesystem $fs, $source, $target)
     {
-        $destination_folder = '../web/covers/';
-        $file = fopen($url, 'rb');
-        if ($file) {
-            $newf = fopen($destination_folder . $newfname, 'wb');
-            if ($newf) {
-                while (! feof($file)) {
-                    fwrite($newf, fread($file, 1024 * 8), 1024 * 8);
-                }
+        $coverDir = '../web/covers/';
+        $coverPath = $coverDir . $target;
+
+        if (!$fs->exists($coverPath)) {
+            $coverContents = @file_get_contents($source);
+
+            if (!empty($coverContents)) {
+                $fs->dumpFile($coverPath, $coverContents);
             }
         }
-        if ($file) {
-            fclose($file);
-        }
-        if ($newf) {
-            fclose($newf);
-        }
-
-        return $newfname;
     }
 }

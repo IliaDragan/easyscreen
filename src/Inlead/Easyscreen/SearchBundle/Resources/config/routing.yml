@@ -10,6 +10,10 @@ departments:
     path:     /departments
     defaults: { _controller: InleadEasyscreenSearchBundle:Search:departments }
 
+branches:
+    path:     /branches
+    defaults: { _controller: InleadEasyscreenSearchBundle:Provider:branches }
+
 availability:
     path:     /availability
     defaults: { _controller: InleadEasyscreenSearchBundle:Provider:availability }
