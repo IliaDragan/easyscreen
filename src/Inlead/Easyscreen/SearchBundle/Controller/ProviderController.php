@@ -45,7 +45,7 @@ class ProviderController extends Controller
         foreach ($branches as $id => $name) {
             $branch = $xml->addChild('branch');
             $branch->addChild('id', $id);
-            $branch->addChild('name', $name);
+            $branch->addChild('name', htmlspecialchars($name));
         }
 
         $response = new Response($xml->asXML());
