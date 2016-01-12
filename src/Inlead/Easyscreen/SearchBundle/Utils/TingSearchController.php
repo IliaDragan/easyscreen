@@ -18,8 +18,8 @@ class TingSearchController
     const TING_SCAN_URL = 'http://openscan.addi.dk/1.7/';
     const TING_SPELL_URL = 'http://openspell.addi.dk/1.2/';
     const TING_RECOMMENDATION_URL = 'http://openadhl.addi.dk/1.1/';
-    const TING_AGENCY_ID = '733000';
-    const TING_SEARCH_PROFILE = 'opac';
+    const TING_AGENCY_ID = '786000';
+    const TING_SEARCH_PROFILE = 'HJOIND';
     const TING_INFOMEDIA_URL = 'http://useraccessinfomedia.addi.dk/1.1/';
 
     private $requestFactory;

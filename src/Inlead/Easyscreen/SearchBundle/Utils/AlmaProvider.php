@@ -9,7 +9,7 @@ use Inlead\Easyscreen\SearchBundle\AlmaClient\AlmaClient;
 
 class AlmaProvider
 {
-    const ALMA_BASE_URL = 'https://roar.roskildebib.dk:8070/alma/';
+    const ALMA_BASE_URL = 'https://hjobib.axielldrift.dk:8040/alma/';
 
     private $instance;
 

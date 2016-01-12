@@ -12,8 +12,8 @@ class CoverImageController
 {
     const ADDI_WSDL_URL = 'http://moreinfo.addi.dk/2.1/';
     const ADDI_USERNAME = 'netpunkt';
-    const ADDI_PASSWORD = 'byspaste';
-    const ADDI_GROUP = '733000';
+    const ADDI_PASSWORD = 'kvupoglo';
+    const ADDI_GROUP = '786000';
 
     public function getCoverImage($faustNumbers)
     {
