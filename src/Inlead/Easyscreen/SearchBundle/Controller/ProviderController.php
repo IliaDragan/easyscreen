@@ -43,6 +43,9 @@ class ProviderController extends Controller
 
         $xml = new \SimpleXmlElement('<branches />');
         foreach ($branches as $id => $name) {
+            if (empty($name)) {
+                continue;
+            }
             $branch = $xml->addChild('branch');
             $branch->addChild('id', $id);
             $branch->addChild('name', htmlspecialchars($name));
