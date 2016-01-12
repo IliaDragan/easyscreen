@@ -30,7 +30,8 @@ class ProviderController extends Controller
             $item->addChild('status', (int) $v['available']);
         }
 
-        $response = new Response($xml->asXML());
+        $result = preg_replace('/[\n\r]/', '', $xml->asXML());
+        $response = new Response($result);
         $response->headers->set('Content-type', 'text/xml');
 
         return $response;
@@ -51,7 +52,8 @@ class ProviderController extends Controller
             $branch->addChild('name', htmlspecialchars($name));
         }
 
-        $response = new Response($xml->asXML());
+        $result = preg_replace('/[\n\r]/', '', $xml->asXML());
+        $response = new Response($result);
         $response->headers->set('Content-Type', 'text/xml');
 
         return $response;

@@ -71,6 +71,7 @@ class SearchController extends Controller
             $response->headers->set('Content-Type', 'text/plain; charset=UTF-8');
         }
 
+        $result = preg_replace('/[\n\r]/', '', $result);
         $response->setContent($result);
 
         return $response;
