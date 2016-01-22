@@ -338,7 +338,7 @@ class TingSearchController
             }
         }
 
-        return $xml->asXML();
+        return str_replace('\'', '\\\'', $xml->asXML());
     }
 
     public function getDepartments()
@@ -362,7 +362,7 @@ class TingSearchController
             $dep->addChild('name', $term);
         }
 
-        return $xml->asXML();
+        return str_replace('\'', '\\\'', $xml->asXML());
     }
 
     private function branchFilter($branch)
