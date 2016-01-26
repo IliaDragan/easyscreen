@@ -23,6 +23,7 @@ class SearchController extends Controller
         'recordId' => null,
         'requestKey' => null,
         'branch' => null,
+        'sort' => null,
     );
 
     public function searchAction(Request $request)
@@ -42,6 +43,7 @@ class SearchController extends Controller
             $options = array(
                 'stepValue' => $this->parameters['limit'],
                 'collectionType' => 'work-1',
+                'sort' => $this->parameters['sort'],
             );
             if (!empty($this->parameters['facets'])) {
                 $this->parameters['facets'] = json_decode($this->parameters['facets']);
@@ -55,7 +57,14 @@ class SearchController extends Controller
             }
 
             $search = new TingSearchController();
-            $result = $search->getSearchResult($this->parameters['query'], $this->parameters['offset'], $this->parameters['limit'], $options, $this->parameters['requestKey'], $this->parameters['branch']);
+            $result = $search->getSearchResult(
+                $this->parameters['query'],
+                $this->parameters['offset'],
+                $this->parameters['limit'],
+                $options,
+                $this->parameters['requestKey'],
+                $this->parameters['branch']
+            );
         } elseif ($this->parameters['action'] == 'item') {
             $search = new TingSearchController();
             $result = $search->getObject($this->parameters['recordId'], $this->parameters['requestKey']);
