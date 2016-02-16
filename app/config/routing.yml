@@ -1,4 +1,3 @@
 inlead_easyscreen_search:
     resource: "@InleadEasyscreenSearchBundle/Resources/config/routing.yml"
     prefix:   /
-
