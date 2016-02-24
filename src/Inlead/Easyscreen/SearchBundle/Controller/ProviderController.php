@@ -5,7 +5,7 @@
 
 namespace Inlead\Easyscreen\SearchBundle\Controller;
 
-use Inlead\Easyscreen\SearchBundle\Utils\AlmaProvider;
+use Inlead\Easyscreen\SearchBundle\Utils\FbsProvider;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,7 +20,7 @@ class ProviderController extends Controller
 
         $items = explode(',', $request->query->get('items'));
 
-        $provider = new AlmaProvider();
+        $provider = new FbsProvider();
         $availability = $provider->getAvailability($items);
 
         $xml = new \SimpleXmlElement('<availability />');
@@ -37,9 +37,9 @@ class ProviderController extends Controller
         return $response;
     }
 
-    public function branchesAction(Request $request)
+    public function branchesAction()
     {
-        $provider = new AlmaProvider();
+        $provider = new FbsProvider();
         $branches = $provider->getReservationBranches();
 
         $xml = new \SimpleXmlElement('<branches />');
