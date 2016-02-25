@@ -11,36 +11,61 @@ use GuzzleHttp\Client;
  */
 class FbsProvider
 {
+    const FBS_BASE_URL = "https://et.cicero-fbs.com/rest/external/v1/DK-761500";
+
+    private $password = "password";
+
+    private $username = "external";
+
+    /**
+     * @param string $method
+     * @param string $path
+     * @param array  $options
+     * @return mixed
+     */
+    public function request($method, $path, array $options)
+    {
+        $client = new Client();
+
+        $permOptions = array(
+          'headers' => array(
+            'Content-Type' => 'application/json',
+            'Accept'       => 'application/json',
+          ),
+        );
+
+        $options = array_merge($permOptions, $options);
+
+        $req = $client->request(
+            $method,
+            self::FBS_BASE_URL.$path,
+            $options
+        );
+
+        $body = $req->getBody()->getContents();
+        $response = json_decode($body);
+
+        return $response;
+    }
+
     /**
      * @return mixed
      */
-    public function getInstance()
+    public function authenticate()
     {
-        $password = "password";
-        $username = "external";
-
-        $client = new Client();
-        $res = $client->request(
+        $req = $this->request(
             'POST',
-            'https://et.cicero-fbs.com/rest/external/v1/DK-761500/authentication/login',
+            '/authentication/login',
             array(
-              'body' => '{"password":"'.$password.'", "username": "'.$username.'"}',
-              'headers' => array(
-                'Content-Type' => 'application/json',
-                'Accept'       => 'application/json',
-              ),
+                'body' => '{"password":"'.$this->password.'", "username": "'.$this->username.'"}',
             )
         );
 
-        $body = $res->getBody();
-        $stringBody = (string) $body;
-        $key = json_decode($stringBody);
-
         $response = new Response();
-        $response->headers->set('X-Session', $key->{'sessionKey'});
+        $response->headers->set('X-Session', $req->{'sessionKey'});
         $response->send();
 
-        return $key;
+        return $req;
     }
 
     /**
@@ -51,26 +76,20 @@ class FbsProvider
     {
         $availability = array();
         foreach ($items as $item) {
-            $res = $this->getInstance();
+            $key = $this->authenticate();
 
-            $client = new Client();
-            $res = $client->request(
-                "GET",
-                "https://et.cicero-fbs.com/rest/external/v1/DK-761500/catalog/availability",
+            $req = $this->request(
+                'GET',
+                '/catalog/availability',
                 array(
                   'headers' => array(
-                    'Content-Type' => 'application/json',
-                    'Accept'       => 'application/json',
-                    'X-Session'    => $res->{'sessionKey'},
+                    'X-Session' => $key->{'sessionKey'},
                   ),
-                  'query'   => ["recordid" => $item],
+                  'query' => array("recordid" => $item),
                 )
             );
 
-            $res = $res->getBody()->getContents();
-
-            $res = json_decode($res);
-            foreach ($res as $v) {
+            foreach ($req as $v) {
                 $availability[$v->recordId] = array(
                   'available' => $v->available,
                 );
@@ -87,24 +106,19 @@ class FbsProvider
     {
         $branches = array();
 
-        $res = $this->getInstance();
+        $key = $this->authenticate();
 
-        $client = new Client();
-        $res = $client->request(
-            "GET",
-            "https://et.cicero-fbs.com/rest/external/v1/DK-761500/branches",
+        $req = $this->request(
+            'GET',
+            '/branches',
             array(
               'headers' => array(
-                'Content-Type' => 'application/json',
-                'Accept'       => 'application/json',
-                'X-Session'    => $res->{'sessionKey'},
+                'X-Session' => $key->{'sessionKey'},
               ),
             )
         );
-        $res = $res->getBody()->getContents();
-        $res = json_decode($res);
 
-        foreach ($res as $branch) {
+        foreach ($req as $branch) {
             $branches[$branch->branchId] = $branch->title;
         }
 
